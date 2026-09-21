@@ -22,7 +22,7 @@ app:
     # the name k3d mirrors inside the nodes, not the
     # published host port - see scripts/build-demo-app.sh
     repository: ai-bench-registry:5000/demo-app
-    tag: "0.1.1"
+    tag: 0.1.1-gc
     pullPolicy: IfNotPresent
 
   replicas: 1
