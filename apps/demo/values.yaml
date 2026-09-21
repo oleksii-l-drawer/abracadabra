@@ -1,0 +1,87 @@
+# ============================================================
+# THE REMEDIATION TARGET
+#
+# This is the one file the agent is allowed to patch
+# (allow-list: apps/**/values.yaml). Every fault in the
+# catalog is a change to a value below and nothing else -
+# no kubectl patch, no template edit - so a fix is always
+# expressible as a diff to this file.
+#
+#   oomkill            app.resources.limits.memory below
+#                      app.baselineMemoryMb
+#   cpu-throttle       app.resources.limits.cpu + loadgen
+#   bad-image          app.image.tag
+#   db-down            postgres.replicas: 0
+#   replica-starvation app.hpa.maxReplicas + loadgen
+#   unschedulable      app.resources.requests.memory
+#   flapping           app.probes.flapping
+# ============================================================
+
+app:
+  image:
+    # the name k3d mirrors inside the nodes, not the
+    # published host port - see scripts/build-demo-app.sh
+    repository: ai-bench-registry:5000/demo-app
+    tag: "0.1.1"
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+
+  # resident memory the app pins at startup; the OOMKill
+  # fault is this exceeding resources.limits.memory
+  baselineMemoryMb: 96
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      # a CPU limit must exist or cAdvisor emits no CFS
+      # throttling metrics at all and the alert is blind
+      cpu: 500m
+      memory: 256Mi
+
+  probes:
+    # readiness oscillates when true -> flapping fault
+    flapping: false
+    flapPeriodSeconds: 20
+
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 60
+
+  service:
+    port: 8000
+    nodePort: 30081
+
+postgres:
+  enabled: true
+  # 0 -> db-down fault
+  replicas: 1
+  image: postgres:17-alpine
+  user: demo
+  password: demo
+  database: demo
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+
+# Traffic source for the faults that only appear under
+# load (cpu-throttle, replica-starvation).
+loadgen:
+  enabled: false
+  replicas: 1
+  concurrency: 8
+  # milliseconds of CPU burn per request
+  burnMs: 120
+
+# Keeps the workload on the small agent nodes, so a
+# FailedScheduling fault cannot leak onto the big
+# control-plane node.
+nodeSelector:
+  bench-role: workload

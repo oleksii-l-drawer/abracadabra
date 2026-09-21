@@ -1,0 +1,39 @@
+# The demo app, owned by Argo CD.
+#
+# This is what makes a fault a real GitOps event: a fault
+# toggle commits a change to apps/demo/values.yaml in the
+# bench remote, Argo CD syncs it, and `fault-clear` is a
+# revert that Argo CD syncs back. The same loop M2's
+# remediation PRs will ride on.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/oleksii-l-drawer/abracadabra.git
+    targetRevision: main
+    path: apps/demo
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      # converge without a human, so a merged change
+      # needs no manual step
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 1m

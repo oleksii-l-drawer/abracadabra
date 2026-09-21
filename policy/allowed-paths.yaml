@@ -1,0 +1,40 @@
+# Path allow-list for the bench GitOps repo.
+#
+# Mirrors the PRD section 9 blast-radius table so the
+# rules exercised on the bench are the production ones.
+# In M2 the GitOps MCP enforces this before a branch is
+# pushed; until then scripts/check-paths.sh enforces it,
+# so every fault toggle is already a legal change.
+#
+# max_autonomy values: autonomous | hitl | deny
+
+rules:
+  - pattern: "apps/**/values.yaml"
+    allowed_changes: [resources, replicas, env, hpa_bounds, image_tag]
+    max_autonomy: autonomous
+    note: the remediation target
+
+  - pattern: "apps/**/kustomization.yaml"
+    allowed_changes: [image_tags, patch_targets]
+    max_autonomy: autonomous
+
+  - pattern: "clusters/*/workloads/**/values.yaml"
+    allowed_changes: [resources, replicas, env, hpa_bounds]
+    max_autonomy: autonomous
+
+  - pattern: "clusters/*/terragrunt.hcl"
+    allowed_changes: [scaling_inputs]
+    max_autonomy: hitl
+
+  - pattern: "infrastructure/modules/**"
+    allowed_changes: [module_source]
+    max_autonomy: hitl
+
+# Denies win over any allow above.
+deny:
+  - "clusters/core-system/**"
+  - "**/iam/**"
+  - "**/rbac/**"
+  - "argocd/**"
+  - "**/cni/**"
+  - "**/ingress-controller/**"
