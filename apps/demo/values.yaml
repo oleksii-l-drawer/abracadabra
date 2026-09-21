@@ -29,7 +29,7 @@ app:
 
   # resident memory the app pins at startup; the OOMKill
   # fault is this exceeding resources.limits.memory
-  baselineMemoryMb: 96
+  baselineMemoryMb: 400
 
   resources:
     requests:
