@@ -39,7 +39,7 @@ app:
       # a CPU limit must exist or cAdvisor emits no CFS
       # throttling metrics at all and the alert is blind
       cpu: 500m
-      memory: 64Mi
+      memory: 320Mi
 
   probes:
     # readiness oscillates when true -> flapping fault
