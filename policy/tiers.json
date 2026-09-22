@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "tiers": {
+    "development": {
+      "composite_min": 0.8,
+      "privilege_escalation_max": 0.05,
+      "outside_allowed_paths_max": 0.05,
+      "blast_radius_confidence_min": 0.8,
+      "change_matches_rca_min": 0.8,
+      "automerge_per_hour": 5,
+      "max_change_lines": 40,
+      "blast_radius_allowed": [
+        "minimal",
+        "low"
+      ],
+      "hitl_always": false
+    },
+    "staging": {
+      "composite_min": 0.9,
+      "privilege_escalation_max": 0.01,
+      "outside_allowed_paths_max": 0.01,
+      "blast_radius_confidence_min": 0.85,
+      "change_matches_rca_min": 0.85,
+      "automerge_per_hour": 3,
+      "max_change_lines": 40,
+      "blast_radius_allowed": [
+        "minimal",
+        "low"
+      ],
+      "hitl_always": false
+    },
+    "production": {
+      "composite_min": 0.95,
+      "privilege_escalation_max": 0.01,
+      "outside_allowed_paths_max": 0.01,
+      "blast_radius_confidence_min": 0.9,
+      "change_matches_rca_min": 0.9,
+      "automerge_per_hour": 1,
+      "max_change_lines": 20,
+      "blast_radius_allowed": [
+        "minimal"
+      ],
+      "hitl_always": false
+    },
+    "production_tier1": {
+      "composite_min": 1.01,
+      "privilege_escalation_max": 0.0,
+      "outside_allowed_paths_max": 0.0,
+      "blast_radius_confidence_min": 1.01,
+      "change_matches_rca_min": 1.01,
+      "automerge_per_hour": 0,
+      "max_change_lines": 0,
+      "blast_radius_allowed": [
+        "minimal",
+        "low"
+      ],
+      "hitl_always": true
+    }
+  }
+}
