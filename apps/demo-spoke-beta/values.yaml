@@ -1,0 +1,60 @@
+# ============================================================
+# THE REMEDIATION TARGET FOR spoke-beta
+#
+# See apps/demo-spoke-alpha/values.yaml for why this file is
+# values-only, why it lives under apps/, and what it proves.
+# ============================================================
+
+app:
+  image:
+    repository: ai-bench-registry:5000/demo-app
+    tag: "0.1.1"
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+  baselineMemoryMb: 96
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  probes:
+    flapping: false
+    flapPeriodSeconds: 20
+
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 60
+
+  service:
+    port: 8000
+    nodePort: 30081
+
+postgres:
+  enabled: true
+  replicas: 1
+  image: postgres:17-alpine
+  user: demo
+  password: demo
+  database: demo
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+
+loadgen:
+  enabled: false
+  replicas: 1
+  concurrency: 8
+  burnMs: 120
+
+nodeSelector:
+  bench-role: workload

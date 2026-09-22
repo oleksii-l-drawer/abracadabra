@@ -1,0 +1,32 @@
+# spoke-beta's demo app, owned by the HUB's Argo CD.
+# See spoke-alpha.yaml for the reasoning.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-spoke-beta
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/oleksii-l-drawer/abracadabra.git
+    targetRevision: main
+    path: apps/demo-spoke-beta
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://k3d-spoke-beta-server-0:6443
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 1m
