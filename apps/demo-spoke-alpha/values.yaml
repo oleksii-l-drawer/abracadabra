@@ -35,7 +35,7 @@ app:
       memory: 32Mi
     limits:
       cpu: 500m
-      memory: 320Mi
+      memory: 64Mi
 
   probes:
     flapping: false
