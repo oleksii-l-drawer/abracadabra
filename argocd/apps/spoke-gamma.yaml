@@ -1,0 +1,42 @@
+# spoke-gamma's demo app, owned by the HUB's Argo CD.
+#
+# The destination is the spoke's API server, reached by container
+# name on the docker network both clusters share - the same
+# mechanism that lets the hub's Argo clone git://ai-bench-gitops.
+# Argo only accepts this destination once spoke.sh has registered
+# the cluster (a Secret labelled argocd.argoproj.io/secret-type:
+# cluster), which is why lib.sh publishes this file only while the
+# spoke exists.
+#
+# The agent can never author this: gitops/allowed-paths.yaml denies
+# argocd/**. Which clusters a hub deploys to is a human decision.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-spoke-gamma
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/oleksii-l-drawer/abracadabra.git
+    targetRevision: main
+    path: apps/demo-spoke-gamma
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://k3d-spoke-gamma-server-0:6443
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 1m

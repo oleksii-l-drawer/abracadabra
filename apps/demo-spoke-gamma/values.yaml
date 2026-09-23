@@ -1,0 +1,76 @@
+# ============================================================
+# THE REMEDIATION TARGET FOR spoke-gamma
+#
+# Values only. The chart is apps/demo's - `publish_tree`
+# assembles Chart.yaml and templates/ next to this file when
+# it publishes, so the repo holds one set of templates and
+# the published tree holds one self-contained chart per
+# cluster.
+#
+# The path is `apps/<app>/values.yaml` on purpose. That is
+# the glob both allow-lists already carry (gitops/fields.py,
+# gitops/allowed-paths.yaml), so a spoke needs no widening
+# of the write surface. A `clusters/<name>/...` layout would
+# be path-allowed and field-DENIED, which fails at the last
+# checkpoint with "no fields are editable".
+#
+# Identical to apps/demo/values.yaml at baseline. A fault
+# pushed here breaks spoke-gamma and nothing else; the hub's
+# agent must resolve THIS file from the alert's cluster
+# label, or it is patching the wrong cluster.
+# ============================================================
+
+app:
+  image:
+    repository: ai-bench-registry:5000/demo-app
+    tag: "0.1.1"
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+  baselineMemoryMb: 96
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  probes:
+    flapping: false
+    flapPeriodSeconds: 20
+
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 60
+
+  service:
+    port: 8000
+    nodePort: 30081
+
+postgres:
+  enabled: true
+  replicas: 1
+  image: postgres:17-alpine
+  user: demo
+  password: demo
+  database: demo
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+
+loadgen:
+  enabled: false
+  replicas: 1
+  concurrency: 8
+  burnMs: 120
+
+# A spoke's single node carries this label (k3d/spoke.yaml.tmpl).
+nodeSelector:
+  bench-role: workload

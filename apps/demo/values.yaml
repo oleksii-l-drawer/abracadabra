@@ -34,12 +34,12 @@ app:
   resources:
     requests:
       cpu: 50m
-      memory: 32Mi
+      memory: 128Mi
     limits:
       # a CPU limit must exist or cAdvisor emits no CFS
       # throttling metrics at all and the alert is blind
       cpu: 500m
-      memory: 384Mi
+      memory: 256Mi
 
   probes:
     # readiness oscillates when true -> flapping fault
