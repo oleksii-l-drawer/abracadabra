@@ -34,7 +34,7 @@ app:
       cpu: 50m
       memory: 128Mi
     limits:
-      cpu: 500m
+      cpu: 50m
       memory: 256Mi
 
   probes:
@@ -66,7 +66,7 @@ postgres:
       memory: 256Mi
 
 loadgen:
-  enabled: false
+  enabled: true
   replicas: 1
   concurrency: 8
   burnMs: 120
