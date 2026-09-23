@@ -44,7 +44,7 @@ app:
   hpa:
     enabled: true
     minReplicas: 1
-    maxReplicas: 5
+    maxReplicas: 1
     targetCPUUtilizationPercentage: 60
 
   service:
@@ -66,7 +66,7 @@ postgres:
       memory: 256Mi
 
 loadgen:
-  enabled: false
+  enabled: true
   replicas: 1
   concurrency: 8
   burnMs: 120
