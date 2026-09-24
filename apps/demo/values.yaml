@@ -15,6 +15,7 @@
 #   replica-starvation app.hpa.maxReplicas + loadgen
 #   unschedulable      app.resources.requests.memory
 #   flapping           app.probes.flapping
+#   pdb-blocks-eviction app.pdb.enabled (minAvailable = replicas)
 # ============================================================
 
 app:
@@ -22,7 +23,7 @@ app:
     # the name k3d mirrors inside the nodes, not the
     # published host port - see scripts/build-demo-app.sh
     repository: ai-bench-registry:5000/demo-app
-    tag: 0.1.1
+    tag: "0.1.1"
     pullPolicy: IfNotPresent
 
   replicas: 1
@@ -51,6 +52,12 @@ app:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 60
+
+  # disruption budget: off at baseline; the pdb-blocks-eviction fault
+  # turns it on, and minAvailable 1 on one replica allows no eviction
+  pdb:
+    enabled: false
+    minAvailable: 1
 
   service:
     port: 8000

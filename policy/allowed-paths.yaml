@@ -10,7 +10,7 @@
 
 rules:
   - pattern: "apps/**/values.yaml"
-    allowed_changes: [resources, replicas, env, hpa_bounds, image_tag]
+    allowed_changes: [resources, replicas, env, hpa_bounds, image_tag, pdb]
     max_autonomy: autonomous
     note: the remediation target
 

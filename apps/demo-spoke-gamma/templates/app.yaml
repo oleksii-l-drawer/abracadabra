@@ -99,3 +99,18 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.app.hpa.targetCPUUtilizationPercentage }}
 {{- end }}
+{{- if .Values.app.pdb.enabled }}
+---
+# #64. Named like the Deployment on purpose: the alert rule copies the
+# budget's name into `deployment`, which is how the agent finds the
+# replica count the budget should be sized against.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: demo-app
+spec:
+  minAvailable: {{ .Values.app.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo-app
+{{- end }}

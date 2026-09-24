@@ -47,6 +47,12 @@ app:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 60
 
+  # disruption budget: off at baseline; the pdb-blocks-eviction fault
+  # turns it on, and minAvailable 1 on one replica allows no eviction
+  pdb:
+    enabled: false
+    minAvailable: 1
+
   service:
     port: 8000
     nodePort: 30081
