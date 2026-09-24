@@ -50,7 +50,7 @@ app:
   # disruption budget: off at baseline; the pdb-blocks-eviction fault
   # turns it on, and minAvailable 1 on one replica allows no eviction
   pdb:
-    enabled: false
+    enabled: true
     minAvailable: 1
 
   service:
