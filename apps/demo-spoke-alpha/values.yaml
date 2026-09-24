@@ -51,7 +51,7 @@ app:
   # turns it on, and minAvailable 1 on one replica allows no eviction
   pdb:
     enabled: true
-    minAvailable: 1
+    minAvailable: 0
 
   service:
     port: 8000
