@@ -35,12 +35,12 @@ app:
   resources:
     requests:
       cpu: 50m
-      memory: 5Gi
+      memory: 128Mi
     limits:
       # a CPU limit must exist or cAdvisor emits no CFS
       # throttling metrics at all and the alert is blind
       cpu: 500m
-      memory: 5Gi
+      memory: 256Mi
 
   probes:
     # readiness oscillates when true -> flapping fault
@@ -49,7 +49,7 @@ app:
 
   hpa:
     enabled: true
-    minReplicas: 3
+    minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 60
 
