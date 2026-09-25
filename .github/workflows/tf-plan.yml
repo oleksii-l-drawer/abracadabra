@@ -1,0 +1,101 @@
+# terraform plan as review evidence (#67). Seeded by `sandbox.sh seed` from
+# the agent repo's bench/sandbox/ - edit it there, not here.
+#
+# On a PR that touches Terragrunt, plan every stack and post a check run
+# named `tf-plan` on the PR HEAD commit. The agent reads that check
+# (review/plan_facts.py): counts in `output.text`, computed by
+# .github/tf-plan/tf_plan_summary.py, never by a model. Any missing, running,
+# failed or unreadable check is "unavailable" to the agent, which asks a human.
+#
+# Evidence, not authority: `tf-plan` is NOT a required check in the branch
+# ruleset, and a plan with destroys still concludes `success` - the gate
+# reads the counts. `clusters/*/terragrunt.hcl` is `hitl` whatever it says.
+#
+# The bench stub needs no credentials (null provider). A real stack would add
+# `id-token: write` and assume a plan-only role over OIDC - not built here.
+name: tf-plan
+
+on:
+  pull_request:
+    paths:
+      - "clusters/*/terragrunt.hcl"
+      - "infrastructure/modules/**"
+      - ".github/tf-plan/**"
+      - ".github/workflows/tf-plan.yml"
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: tf-plan-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  TERRAFORM_VERSION: "1.15.9"
+  TERRAGRUNT_VERSION: "1.1.5"
+  TERRAGRUNT_SHA256: "ffc9a19a2eeb5bd9d8dcf8fb7ce3f2a51754a815fecfbdd4aaa35e526dd1d352"
+
+jobs:
+  plan:
+    # Not "tf-plan": the job's own check run would share the name the agent
+    # filters on, and while it runs it would read as "the check is in_progress".
+    name: terraform plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The PR head, not the merge commit: the check belongs on the SHA
+          # the agent reads (`pull_request.head.sha`), and the base is
+          # needed for the stub's base state.
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The summariser is standard library only; pin the version it is tested on.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          # The wrapper decorates stdout, and `show -json` must be bare.
+          terraform_wrapper: false
+
+      - name: install terragrunt
+        run: |
+          curl -fsSLo /tmp/terragrunt \
+            "https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64"
+          echo "${TERRAGRUNT_SHA256}  /tmp/terragrunt" | sha256sum -c -
+          sudo install -m 0755 /tmp/terragrunt /usr/local/bin/terragrunt
+          terragrunt --version
+
+      - name: plan
+        id: plan
+        run: bash .github/tf-plan/tf-plan.sh "${BASE_SHA}" "${RUNNER_TEMP}/tf-plan"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+      # Always posts, so a plan that broke is a `failure` check (-> HITL)
+      # rather than no check at all (also HITL, but says less).
+      - name: post the tf-plan check
+        if: always() && steps.plan.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          OUTCOME: ${{ steps.plan.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          failed=()
+          if [[ "${OUTCOME}" != "success" ]]; then
+            failed=(--failed "terraform plan ${OUTCOME}; see ${RUN_URL}")
+          fi
+          python3 .github/tf-plan/tf_plan_summary.py --check-run \
+            --head-sha "${HEAD_SHA}" --details-url "${RUN_URL}" "${failed[@]}" \
+            "${RUNNER_TEMP}"/tf-plan/*.head.json \
+            > "${RUNNER_TEMP}/check-run.json"
+          cat "${RUNNER_TEMP}/check-run.json"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/check-runs" \
+            --input "${RUNNER_TEMP}/check-run.json" --silent
