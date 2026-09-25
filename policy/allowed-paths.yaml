@@ -22,6 +22,12 @@ rules:
     allowed_changes: [resources, replicas, env, hpa_bounds]
     max_autonomy: autonomous
 
+  # M7.9: an ECS service's desired state, applied by the team's deploy.
+  # Its four change classes enter at assisted (review/gate.py).
+  - pattern: "ecs/*/service.json"
+    allowed_changes: [task_size, desired_count, autoscaling_bounds, image_tag]
+    max_autonomy: autonomous
+
   - pattern: "clusters/*/terragrunt.hcl"
     allowed_changes: [scaling_inputs]
     max_autonomy: hitl
