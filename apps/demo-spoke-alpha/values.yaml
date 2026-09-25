@@ -32,10 +32,10 @@ app:
   resources:
     requests:
       cpu: 50m
-      memory: 32Mi
+      memory: 128Mi
     limits:
       cpu: 500m
-      memory: 320Mi
+      memory: 256Mi
 
   probes:
     flapping: false
