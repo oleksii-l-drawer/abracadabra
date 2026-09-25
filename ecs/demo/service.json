@@ -18,7 +18,7 @@
         "repository": "python",
         "tag": "3.13-alpine"
       },
-      "memory": 32,
+      "memory": 128,
       "environment": {
         "ALLOC_MIB": "64"
       },
