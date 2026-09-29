@@ -44,7 +44,7 @@ app:
 
   probes:
     # readiness oscillates when true -> flapping fault
-    flapping: false
+    flapping: true
     flapPeriodSeconds: 20
 
   hpa:
